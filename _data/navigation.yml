@@ -1,0 +1,27 @@
+# main links
+main:
+  - title: "About"
+    url: "/about/"
+  - title: "Posts"
+    url: /posts/
+
+tags:
+  - title: Tags
+    url: /tags/
+    children:
+      - title: "Vision AI"
+        url: /tags/vision-ai/
+      - title: "LLM"
+        url: /tags/llm/
+      - title: "Model"
+        url: /tags/model/
+      - title: "Data"
+        url: /tags/data/
+      - title: "Product"
+        url: /tags/product/
+      - title: "Engine"
+        url: /tags/engine/  
+      - title: "Career"
+        url: /tags/career/
+      - title: "Review"
+        url: /tags/review/
