@@ -21,6 +21,12 @@ tags:
         url: /tags/product/
       - title: "Engine"
         url: /tags/engine/  
+      - title: "Deploy"
+        url: /tags/deploy/
+      - title: "OS"
+        url: /tags/os/
+      - title: "System"
+        url: /tags/system/                                
       - title: "Career"
         url: /tags/career/
       - title: "Review"
