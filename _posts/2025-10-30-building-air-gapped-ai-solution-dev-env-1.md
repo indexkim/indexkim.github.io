@@ -36,11 +36,12 @@ RHEL 9을 기준으로 하지만, 다른 Linux 배포판에서도 동일한 방�
 | GPU 탑재 워크스테이션 | AI 모델 학습 및 추론 환경 구축용 메인 시스템 (서버 역할 가능) |
 | 클라이언트용 노트북 또는 PC | 워크스테이션 제어 및 환경 테스트용 |
 | 랜선 (LAN Cable) | 워크스테이션과 클라이언트 간 유선 연결용 |
-| 스위칭 허브 (Switch/Hub) | 폐쇄망 내부 네트워크 구성용 (공유기 대신 사용) |
+| L2 스위치(Layer 2 Switch) | 폐쇄망 내부 네트워크 구성용 (공유기 대신 사용) |
 | USB 메모리 | RHEL 또는 Ubuntu 설치용 부팅 USB 제작 (16GB 이상 권장) |
 | 외장 SSD 또는 대용량 USB | 오프라인 패키지, Docker 이미지, 모델 파일 전송용 (256GB 이상 권장) |
 | 모니터 / 키보드 / 마우스 | 초기 설치 및 설정용 (KVM 스위치 사용 가능) |
 
+---
 
 ### 소프트웨어 (사전 다운로드 필요)
 
@@ -52,7 +53,7 @@ RHEL 9을 기준으로 하지만, 다른 Linux 배포판에서도 동일한 방�
 | NVIDIA 드라이버 | GPU 모델에 맞는 `.run` 파일 (예: `NVIDIA-Linux-x86_64-550.54.15.run`) | GPU 드라이버 설치 |
 | NVIDIA Container Toolkit | 오프라인 `.rpm` 패키지 모음 (예: `libnvidia-container`, `nvidia-container-toolkit` 등) | Docker GPU 연동 |
 | Docker 오프라인 패키지 | `docker-ce`, `docker-ce-cli`, `containerd.io` (`.rpm` 또는 `.deb`) | 컨테이너 런타임 설치 |
-| Docker 이미지 | 프로젝트용 Docker 이미지를 `.tar`로 저장 (예: `pytorch/pytorch:2.4.0-cuda12.4`) | AI 개발 환경 |
+| Docker 이미지 | 프로젝트용 Docker 이미지를 `.tar`로 저장 (예: `idxkim_image:v0.1`) | AI 개발 환경 |
 | VSCode 관련 패키지 | 설치 파일(`.exe`/`.rpm`), 확장(`.vsix`), Server 모듈(`vscode-server-linux-x64.tar.gz`) | 코드 편집 및 Remote SSH 환경 |
 | 사전학습 모델 (선택) | Hugging Face 등에서 다운로드한 모델 (`.safetensors`, `.bin` 등) | AI 모델 학습 및 추론 |
 | 추가 개발 도구 (선택) | `git`, `vim`, `tmux` 등의 오프라인 `.rpm`/`.deb` 패키지 | 개발 편의 도구 설치 |
@@ -109,7 +110,7 @@ RHEL 9을 기준으로 하지만, 다른 Linux 배포판에서도 동일한 방�
 
 설치용 ISO를 마운트하면 이 두 폴더를 확인할 수 있습니다.
 
-마운트 예시:
+ISO 파일을 임시 디렉터리에 마운트하여 내부 구조를 확인합니다:
 
 ```bash
 mkdir -p /mnt/iso
@@ -147,7 +148,7 @@ mount -o loop rhel-9.x-x86_64-dvd.iso /mnt/iso
 | 파티션 | 자동(Auto) | 간편하지만 비효율적 ( `/home`, `/var` 분리되지 않음 ) |
 | 네트워크 | 비활성화 | 폐쇄망 환경이므로 설정 불필요 |
 | 설치 타입 | Workstation | GUI 포함, 초기 환경 구성에 편리함 |
-| root 계정 | SSH 허용 | 원격 관리 편의성 확보 |
+| `root` 계정 | SSH 허용 | 원격 관리 편의성 확보 |
 | 사용자 계정 | 모든 옵션 체크 | 관리자 권한 포함 |
 
 > 파티션은 `/`, `/var`, `/home`을 분리하여 설정하는 것을 권장  
@@ -186,8 +187,11 @@ cp -r /mnt/iso/AppStream /opt/repos/
 umount /mnt/iso
 ```
 
+---
 
 #### (2) 로컬 repo 설정 파일 생성
+
+복사한 로컬 디렉터리를 리포지토리로 등록하기 위해 설정 파일을 생성합니다:
 
 ```bash
 sudo vi /etc/yum.repos.d/local.repo
@@ -209,8 +213,12 @@ enabled=1
 gpgcheck=0
 ```
 
+---
 
 #### (3) repo 인덱스 갱신 및 확인
+
+로컬 리포지토리 설정이 완료되면 패키지 캐시를 갱신하고
+등록된 리포지토리 목록을 확인합니다.
 
 ```bash
 sudo dnf clean all
@@ -225,8 +233,12 @@ BaseOS                         RHEL-9-BaseOS
 AppStream                      RHEL-9-AppStream
 ```
 
+---
 
 #### (4) 패키지 설치 테스트
+
+로컬 리포지토리가 정상적으로 동작하는지 확인하기 위해
+간단한 패키지를 설치해봅니다.
 
 ```bash
 sudo dnf install -y vim
@@ -243,8 +255,12 @@ sudo dnf install -y vim
 
 ### 유선 네트워크 구성
 
-- 워크스테이션과 클라이언트(노트북/PC)는 허브(Switch/Hub)를 통해 유선(LAN)으로 연결합니다.
-- 공유기(Router)는 인터넷 연결 기능이 포함되어 있으므로 사용하지 않습니다.
+
+워크스테이션과 클라이언트(노트북/PC)는 L2 스위치(Layer 2 Switch) 를 통해 유선(LAN)으로 연결합니다.
+L2 스위치는 MAC 주소를 기반으로 프레임을 전달하지만,
+사용자가 별도로 MAC 주소를 설정할 필요는 없습니다.
+각 장비의 네트워크 인터페이스에 기본 내장된 MAC 정보를 스위치가 자동으로 학습해 처리합니다.
+공유기(Router)는 외부망 연결용 장비이므로 폐쇄망 환경에서는 사용하지 않습니다.
 
 구성 예시:
 
@@ -254,6 +270,7 @@ sudo dnf install -y vim
 [Client Laptop]──LAN─┘
 ```
 
+---
 
 ### RHEL 워크스테이션 IP 설정
 
@@ -269,20 +286,25 @@ RHEL 9의 Settings → Network → Wired → IPv4 → Manual 에서 아래 값 �
 > 폐쇄망에서는 외부 네트워크(인터넷)와의 연결이 없으므로  
 > 기본 게이트웨이와 DNS는 설정하지 않음
 
+---
 
 ### 클라이언트 IP 설정(윈도우 기준)
 
 #### (1) 네트워크 설정 진입
 
-1. 제어판을 열고 네트워크 및 공유 센터 (Network and Sharing Center) 클릭
+1. 제어판 → 네트워크 및 공유 센터 (Network and Sharing Center) 클릭
 2. 왼쪽 메뉴의 어댑터 설정 변경(Change adapter settings) 클릭
-3. 이더넷(Ethernet) 아이콘을 찾기 (Wi-Fi가 아닌 유선 연결 항목)
+3. 이더넷(Ethernet) 아이콘 찾기 (Wi-Fi가 아닌 유선 연결 항목)
+
+---
 
 #### (2) 속성 변경
 
-1. Ethernet 아이콘을 오른쪽 클릭 → 속성(Properties)
+1. Ethernet 아이콘 우클릭 → 속성(Properties)
 2. 목록에서 Internet Protocol Version 4 (TCP/IPv4) 선택
 3. 속성(Properties) 버튼 클릭
+
+---
 
 #### (3) IP 수동 입력
 
@@ -295,9 +317,11 @@ RHEL 9의 Settings → Network → Wired → IPv4 → Manual 에서 아래 값 �
 
 확인(OK) → 닫기(Close) 선택
 
+---
+
 #### (4) 연결 확인
 
-명령 프롬프트(cmd)를 열고 다음을 입력합니다:
+명령 프롬프트(`cmd`)를 열고 다음을 입력합니다:
 
 ```bash
 ping 192.168.0.50
@@ -305,7 +329,11 @@ ping 192.168.0.50
 
 워크스테이션에서 응답이 오면 네트워크 연결이 완료된 것입니다.
 
+---
+
 #### (5) 설정 확인
+
+네트워크 설정이 올바르게 적용되었는지 확인합니다:
 
 ```bash
 ipconfig
@@ -336,6 +364,7 @@ Ubuntu와 RHEL은 모두 Linux 계열이지만 철학, 관리 방식, 보안 정
 | 오프라인 repo 구성   | `apt-mirror` 사용 (의존성 관리 필요)                       | ISO 복사만으로 가능 (패키지는 제한적)         |
 | 주 사용처        | 연구소, 스타트업, 개발 환경                              | 대기업, 공공기관, 납품 프로젝트                  |
 
+---
 
 ### 차이점
 
@@ -350,6 +379,7 @@ Ubuntu와 RHEL은 모두 Linux 계열이지만 철학, 관리 방식, 보안 정
 > (패키지 의존성, GPG 키, 미러 구성 등을 수동으로 준비해야 함)  
 > RHEL은 ISO 내부에 저장소가 포함되어 있어 복사와 등록만으로 오프라인 운용 가능
 
+---
 
 #### (2) 패키지 관리 구조
 
@@ -362,6 +392,7 @@ Ubuntu와 RHEL은 모두 Linux 계열이지만 철학, 관리 방식, 보안 정
 > Ubuntu는 단일 저장소 구조로 관리가 직관적  
 > RHEL은 리포지토리 단위 관리로 확장성과 안정성이 높음
 
+---
 
 #### (3) 보안 정책 (SELinux vs AppArmor)
 
@@ -377,6 +408,7 @@ Ubuntu와 RHEL은 모두 Linux 계열이지만 철학, 관리 방식, 보안 정
 > SELinux는 정밀한 제어와 보안 감사 기능이 강력함  
 > 폐쇄망에서는 SELinux를 `Permissive` 모드로 완화 운영하는 경우가 많음
 
+---
 
 #### (4) AI 프레임워크 호환성
 
@@ -388,6 +420,7 @@ Ubuntu와 RHEL은 모두 Linux 계열이지만 철학, 관리 방식, 보안 정
 > Ubuntu는 AI 개발 환경 구성이 용이  
 > RHEL은 장기적인 운영 안정성이 높음
 
+---
 
 #### (5) 오프라인 패키지 리포지토리 구성
 
@@ -399,19 +432,21 @@ Ubuntu와 RHEL은 모두 Linux 계열이지만 철학, 관리 방식, 보안 정
 > Ubuntu는 최신 패키지와 다양한 버전을 제공  
 > RHEL은 단순한 구조로 오프라인 환경 구성에 용이
 
+---
 
 #### (6) 컨테이너 관리 (Docker vs Podman)
 
 | 항목 | Ubuntu | RHEL |
 |------|--------|------|
 | 기본 컨테이너 엔진 | Docker | Podman |
-| 실행 권한 | root 필요 | rootless (보안성 우수) |
+| 실행 권한 | `root` 필요 | `rootless` 지원 (보안성 우수) |
 | 호환성 | 풍부한 이미지 및 Compose 지원 | Docker Compose 별도 설치 필요 |
-| 보안 | Docker daemon 권한 위험 | Podman은 프로세스 격리 강화 |
+| 보안 | Docker 데몬 권한 위험 | Podman은 프로세스 격리 강화 |
 
 > Ubuntu는 개발 및 배포 환경 구성이 편리  
 > RHEL은 컨테이너 보안성과 격리성이 우수
 
+---
 
 ### 요약 비교 및 선택 가이드
 
@@ -425,6 +460,7 @@ Ubuntu와 RHEL은 모두 Linux 계열이지만 철학, 관리 방식, 보안 정
 > Ubuntu는 개발 및 테스트 환경에 적합  
 > RHEL은 보안과 안정성을 요구하는 운영 환경에 적합
 
+---
 
 ### APT ↔ DNF 명령어 대응표
 
@@ -463,7 +499,7 @@ Ubuntu는 `apt`, RHEL은 `dnf`를 사용하지만, 명령 체계와 기능은 �
 폐쇄망 환경에서 AI Solution 개발환경을 구축하는 과정은  
 OS 설치를 넘어 완전한 독립 생태계 구성을 목표로 합니다.
 
-이번 글에서는 폐쇄망 환경 구축의 기초 단계를 다음과 같이 진행했습니다:
+이번 글에서는 폐쇄망 환경 구축의 기초 단계를 다음과 같이 진행했습니다.
 
 1. 준비 및 OS 설치  
    - 하드웨어·소프트웨어 목록 정리 및 RHEL ISO 기반 부팅 USB 제작  
