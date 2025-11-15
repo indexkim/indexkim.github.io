@@ -122,9 +122,8 @@ lsmod | grep nouveau
 
 ### 8. NVIDIA 드라이버 설치
 
-#### (1) RHEL 9 환경용 `.rpm` 드라이버 설치 (580 이상 버전)
+#### (1) RHEL 9 환경용 `.rpm` 드라이버 설치
 
-NVIDIA 드라이버는 580 버전 이후부터는 `.run` 파일이 제공되지 않습니다.    
 NVIDIA 공식 사이트에서 `nvidia-driver-local-repo-rhel9-580.*.rpm` 패키지를 사용해  
 로컬 리포지토리를 구성한 뒤 설치할 수 있습니다.
 
@@ -146,29 +145,25 @@ sudo dnf repolist
 sudo dnf install -y nvidia-driver
 ```
 
-NVIDIA Container Toolkit을 사용할 경우 호스트에는 NVIDIA 드라이버만 설치하면 충분합니다.
-AI 프레임워크(PyTorch, TensorFlow), CUDA Toolkit, cuDNN 등은 모두 컨테이너 내부에 포함되며,
-호스트는 드라이버 역할만 담당합니다.
-
-단, 호스트에서 직접 CUDA C++ 컴파일을 수행해야 하는 특수 환경에서는
-CUDA Toolkit 설치가 필요할 수 있습니다.
-
 ---
 
-#### (2) `.run` 파일 방식 설치 (550 이하 버전)
+#### (2) `.run` 파일 방식 설치 
 
-550 이하 버전에서는 `.run` 파일 방식으로 설치할 수 있습니다.
+`.run` 파일 방식으로도 설치할 수 있습니다.  
+이 방식은 커널 모듈을 직접 빌드하므로 인터넷 연결이 필요하지 않습니다.  
 
-`.run` 파일은 커널 모듈을 직접 빌드하므로 인터넷 연결이 필요하지 않습니다.  
-`--no-cc-version-check` 옵션은 GCC 버전 불일치 시에도 설치가 중단되지 않도록 하는 옵션입니다.  
-GCC 버전이 일치하는 경우에는 이 옵션을 생략해도 무방합니다.
+설치 절차는 다음과 같습니다.
 
 ```bash
-sudo bash NVIDIA-Linux-x86_64-550.78.run --no-cc-version-check
+# 1. 실행 권한 부여
+chmod +x NVIDIA-Linux-x86_64-580.95.05.run
+
+# 2. 드라이버 설치
+sudo bash NVIDIA-Linux-x86_64-580.95.05.run --no-cc-version-check
 ```
 
-이 방식은 CUDA Repo를 사용할 수 없는 오프라인 환경에서 유용하며,  
-580 이후 버전부터는 `.run` 파일이 제공되지 않습니다.  
+`--no-cc-version-check` 옵션은 GCC 버전 불일치 시에도 설치가 중단되지 않도록 하는 옵션입니다.  
+이 방식은 로컬 리포지토리 구성 없이 바로 설치할 수 있어 간편합니다.  
 
 ---
 
@@ -261,18 +256,6 @@ sudo reboot
 
 ---
 
-### NVIDIA 드라이버 버전 선택 가이드
-
-| 항목       | 550 버전             | 580 이후 버전           |
-| -------- | ------------------ | ------------------- |
-| 설치 형태    | `.run` 및 `.rpm` 지원 | `.rpm` 중심           |
-| 오프라인 설치  | `.run` 단일 파일로 용이   | `.rpm` 의존성 수동 구성 필요 |
-| CUDA 호환성 | CUDA 12.x 완전 지원    | CUDA 13.x 지원        |
-| RHEL 호환성 | 9.0~9.4 검증         | 9.5 이상 권장           |
-| 특징       | 안정적 LTS 버전         | 최신 기능 중심            |
-
----
-
 ### 전체 절차 요약
 
 ```bash
@@ -296,15 +279,22 @@ sudo dracut --force
 sudo systemctl set-default multi-user.target
 sudo reboot
 
-# 6. NVIDIA 드라이버 설치
-sudo bash NVIDIA-Linux-x86_64-550.78.run --no-cc-version-check
+# 6-1. NVIDIA 드라이버 설치 (rpm 방식)
+sudo rpm -ivh nvidia-driver-local-repo-rhel9-580.95.05-1.0-1.x86_64.rpm
+sudo dnf clean all
+sudo dnf install -y nvidia-driver
+
+# 6-2. NVIDIA 드라이버 설치 (run 방식)
+chmod +x NVIDIA-Linux-x86_64-580.95.05.run
+sudo bash NVIDIA-Linux-x86_64-580.95.05.run --no-cc-version-check
 
 # 7. 그래픽 모드 복귀 및 확인
 sudo systemctl set-default graphical.target
 sudo reboot
 ```
 
-> `nouveau` 비활성화 → `initramfs` 재생성 → CLI 전환 → `.run` 설치 순서를 지켜야 함
+> `nouveau` 비활성화 → `initramfs` 재생성 → CLI 전환 → 드라이버 설치 순서를 지켜야 함  
+> 6단계에서 `.rpm` 방식(6-1) 또는 `.run` 방식(6-2) 중 선택
 
 ---
 
@@ -349,7 +339,7 @@ nvidia-smi
 ### 3. 설치 절차
 
 GitHub Release에서 직접 받은 `.rpm` 파일은 별도의 리포지토리 등록 없이  
-`dnf install -y *.rpm` 명령으로 설치할 수 있습니다.  
+`dnf install -y *.rpm` 명령어로 설치할 수 있습니다.  
 의존성 순서가 있기 때문에 위 순서를 지키는 것이 안정적입니다.  
 
 NVIDIA Container Toolkit 설치 후에는 재부팅이 필요하지 않으며,  
@@ -411,6 +401,39 @@ NVIDIA Container Toolkit 설정이 적용된 상태입니다.
 ls /etc/nvidia-container-runtime/
 cat /etc/nvidia-container-runtime/config.toml | head -n 10
 ```
+
+---
+
+### 호스트 CUDA 설치에서 컨테이너 격리로: CUDA 설치가 필요 없어진 이유
+
+과거에는 환경 설정이 딥러닝 학습의 최대 진입장벽 중 하나였습니다.  
+
+Windows 환경에서는 CUDA Toolkit 설치 단계부터 Visual Studio 버전 제약으로 막히는 경우가 많았고,
+OpenCV 같은 복잡한 라이브러리는 빌드 실패와 재시도를 며칠에 걸쳐 반복해야 했습니다.  
+Ubuntu는 CUDA/cuDNN 설치가 비교적 수월했으나 OpenCV 빌드 시 WITH_QT, WITH_FFMPEG 같은 옵션 조합에서 충돌이 반복되었습니다.  
+
+그러나 Docker 기반 워크플로우로 전환된 이후부터는 상황이 크게 달라졌습니다.  
+호스트에는 드라이버만 설치하면 되고, CUDA/cuDNN은 모두 컨테이너에 포함되기 때문에  
+환경 구성으로 인한 문제는 사실상 사라졌습니다.
+
+#### 1. 호스트 직접 설치 방식 (conda)
+- 호스트에 NVIDIA 드라이버 + CUDA Toolkit + cuDNN 설치 필요
+- Windows의 경우 Visual Studio, CMake, Ninja 등 추가 개발 도구 필수
+- OpenCV 소스 빌드 시 Qt/GTK GUI 옵션과 FFmpeg 의존성 충돌이 빈번
+- CUDA/cuDNN/PyTorch 버전 조합을 맞추는 데 많은 시간 소모
+- 프로젝트마다 다른 CUDA 버전을 쓰면 호스트 환경 충돌 발생
+- 현재도 Jupyter 기반 로컬 개발, 빠른 프로토타이핑에는 유용함
+
+#### 2. 컨테이너 방식 (Docker + NVIDIA Container Toolkit)
+- 호스트에는 NVIDIA 드라이버만 설치하면 충분
+- CUDA Toolkit, cuDNN, AI 프레임워크는 컨테이너 이미지에 포함
+- 호스트는 GPU 하드웨어 제어만 담당
+- 프로젝트마다 CUDA 버전이 달라도 컨테이너로 격리되어 충돌 없음
+- 환경 재현성이 높고, 학습·배포·운영까지 동일한 구성 유지 가능
+- 프로덕션·학습 환경에서는 사실상 표준
+
+> 단, 호스트에서 직접 CUDA C++ 컴파일을 수행해야 하는 경우 CUDA Toolkit 설치 필요  
+> → PyTorch C++ Extension, TensorRT 플러그인, FlashAttention·xFormers 등 고성능 CUDA 커널, NVDEC/NPP 기반 미디어 처리 등
 
 ---
 
