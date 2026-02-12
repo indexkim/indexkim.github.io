@@ -1,6 +1,6 @@
 ---
 title: 폐쇄망 AI Solution 개발환경 구축 (2)
-tags: [deploy, engine, os, system]
+tags: [deploy, os, system]
 toc: true
 toc_sticky: true
 post_no: 9
@@ -691,7 +691,14 @@ Docker 설치 후 저장 경로(`/var/lib/docker`)를 변경해야 하는 경우
 - 레이어 손상 위험: 복사 중 중단되면 컨테이너 실행이 실패할 수 있습니다.
 - 다운타임 발생: 모든 컨테이너를 중지한 상태에서 작업해야 합니다.
 - 백업 권장: 중요한 컨테이너나 이미지는 사전에 백업해 두는 것이 안전합니다.
+- SELinux 컨텍스트: 경로 변경 후 새 디렉터리에 SELinux 컨텍스트를 등록해야 합니다.  
+  등록하지 않으면 이후 볼륨 마운트 시 권한 문제가 발생할 수 있습니다.
 
+```bash
+# 새 경로에 SELinux 컨텍스트 등록
+sudo semanage fcontext -a -t container_var_lib_t "/home/docker(/.*)?"
+sudo restorecon -Rv /home/docker
+```
 ---
 
 ### 1. 데이터 디렉터리 이동
@@ -1292,4 +1299,4 @@ Ctrl + Shift + P → Remote-SSH: Connect to Host → gpu-server
 
 이로써 폐쇄망 환경에서도 GPU를 활용한 컨테이너 기반 AI 개발 환경이 구축되었습니다.
 
-> 다음 편에서는 AI Solution 통합 서비스 구성 및 배포로 이어집니다.
+> 다음 편에서는 AI Solution 서비스 구성 및 배포로 이어집니다.
