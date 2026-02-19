@@ -3,8 +3,8 @@ permalink: /about/
 title: About
 ---
 ## Me
-End-To-End Applied AI Engineer입니다.  
-Vision AI 기술을 실제 환경에 적용하고 제품화합니다.  
+Applied AI Engineer입니다.  
+AI 모델을 실서비스 환경에서 안정적으로 동작하도록 구축하고 운영합니다.  
 
 ## This Blog
 스스로의 성장을 기록함과 동시에,  

@@ -1,6 +1,6 @@
 ---
 title: 폐쇄망 AI Solution 서비스 구성 및 배포
-tags: [deploy, engine, model, system]
+tags: [data, deploy, docker, engine, infra, model, system]
 toc: true
 toc_sticky: true
 post_no: 10

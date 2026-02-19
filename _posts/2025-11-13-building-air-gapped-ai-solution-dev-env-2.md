@@ -1,6 +1,6 @@
 ---
 title: 폐쇄망 AI Solution 개발환경 구축 (2)
-tags: [deploy, os, system]
+tags: [docker, infra, os, system]
 toc: true
 toc_sticky: true
 post_no: 9

@@ -11,22 +11,28 @@ tags:
     children:
       - title: "Vision AI"
         url: /tags/vision-ai/
-      - title: "LLM"
-        url: /tags/llm/
       - title: "Model"
         url: /tags/model/
       - title: "Data"
         url: /tags/data/
+      - title: "LLM"
+        url: /tags/llm/
       - title: "Product"
         url: /tags/product/
       - title: "Engine"
-        url: /tags/engine/  
-      - title: "Deploy"
-        url: /tags/deploy/
+        url: /tags/engine/
+      - title: "Infra"
+        url: /tags/infra/
       - title: "OS"
         url: /tags/os/
+      - title: "Docker"
+        url: /tags/docker/
       - title: "System"
-        url: /tags/system/                                
+        url: /tags/system/
+      - title: "Deploy"
+        url: /tags/deploy/
+      - title: "Security"
+        url: /tags/security/
       - title: "Career"
         url: /tags/career/
       - title: "Review"
