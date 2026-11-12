@@ -15,8 +15,14 @@ tags:
         url: /tags/model/
       - title: "Data"
         url: /tags/data/
+      - title: "LLM"
+        url: /tags/llm/ 
       - title: "VLM"
         url: /tags/vlm/
+      - title: "Agent AI"
+        url: /tags/agent-ai/  
+      - title: "Physical AI"
+        url: /tags/physical-ai/
       - title: "Product"
         url: /tags/product/
       - title: "Engine"
